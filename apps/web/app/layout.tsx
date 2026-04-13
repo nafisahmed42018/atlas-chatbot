@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@workspace/ui/lib/utils"
 import { AuthProvider } from "@/components/convex-provider"
 import { ClerkProvider } from "@clerk/nextjs"
+import { AuthGuard } from "@/modules/auth/ui/components/auth-guard"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 
