@@ -1,9 +1,11 @@
 import { Geist, Geist_Mono } from "next/font/google"
 
+// @ts-ignore
 import "@workspace/ui/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@workspace/ui/lib/utils"
-import { ConvexProviders } from "@/components/convex-provider"
+import { AuthProvider } from "@/components/convex-provider"
+import { ClerkProvider } from "@clerk/nextjs"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -30,7 +32,9 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
-          <ConvexProviders>{children}</ConvexProviders>
+          <ClerkProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </ClerkProvider>
         </ThemeProvider>
       </body>
     </html>
