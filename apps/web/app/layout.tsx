@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@workspace/ui/lib/utils"
 import { AuthProvider } from "@/components/convex-provider"
 import { ClerkProvider } from "@clerk/nextjs"
-import { AuthGuard } from "@/modules/auth/ui/components/auth-guard"
+import { TooltipProvider } from "@workspace/ui/components/tooltip"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -32,11 +32,13 @@ export default function RootLayout({
       )}
     >
       <body>
-        <ThemeProvider>
-          <ClerkProvider>
-            <AuthProvider>{children}</AuthProvider>
-          </ClerkProvider>
-        </ThemeProvider>
+        <TooltipProvider>
+          <ThemeProvider>
+            <ClerkProvider>
+              <AuthProvider>{children}</AuthProvider>
+            </ClerkProvider>
+          </ThemeProvider>
+        </TooltipProvider>
       </body>
     </html>
   )
