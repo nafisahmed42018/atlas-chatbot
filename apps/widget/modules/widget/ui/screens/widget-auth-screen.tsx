@@ -1,42 +1,49 @@
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormMessage,
-} from "@workspace/ui/components/form"
-import { Button } from "@workspace/ui/components/button"
-import { Input } from "@workspace/ui/components/input"
-import { WidgetHeader } from "@/modules/widget/ui/components/widget-header"
-import { useMutation } from "convex/react"
-import { api } from "@workspace/backend/_generated/api"
-import { Doc } from "@workspace/backend/_generated/dataModel"
+} from "@workspace/ui/components/form";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { WidgetHeader } from "@/modules/widget/ui/components/widget-header";
+import { useMutation } from "convex/react";
+import { api } from "@workspace/backend/_generated/api";
+import { Doc } from "@workspace/backend/_generated/dataModel";
+import { useAtomValue, useSetAtom } from "jotai";
+import { contactSessionIdAtomFamily, organizationIdAtom } from "../../atoms/widget-atom";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
-})
+});
 
 // Temporary test organizationId, before we add state management
-const organizationId = "123"
+const organizationId = "123";
 
 export const WidgetAuthScreen = () => {
+  const organizationId = useAtomValue(organizationIdAtom);
+  const setContactSessionId = useSetAtom(
+    contactSessionIdAtomFamily(organizationId || "")
+  );
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       email: "",
     },
-  })
+  });
 
-  const createContactSession = useMutation(api.public.contactSession.create)
+  const createContactSession = useMutation(api.public.contactSession.create);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!organizationId) {
-      return
+      return;
     }
 
     const metadata: Doc<"contactSession">["metadata"] = {
@@ -52,23 +59,27 @@ export const WidgetAuthScreen = () => {
       cookieEnabled: navigator.cookieEnabled,
       referrer: document.referrer || "direct",
       currentUrl: window.location.href,
-    }
+    };
 
     const contactSessionId = await createContactSession({
       ...values,
       organizationId,
       metadata,
-    })
+    });
 
-    console.log({ contactSessionId })
-  }
+    setContactSessionId(contactSessionId);
+  };
 
   return (
     <>
       <WidgetHeader>
         <div className="flex flex-col justify-between gap-y-2 px-2 py-6 font-semibold">
-          <p className="text-3xl">Hi there! 👋</p>
-          <p className="text-lg">Let&apos;s get you started</p>
+          <p className="text-3xl">
+            Hi there! 👋
+          </p>
+          <p className="text-lg">
+            Let&apos;s get you started
+          </p>
         </div>
       </WidgetHeader>
       <Form {...form}>
