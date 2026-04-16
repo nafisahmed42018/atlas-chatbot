@@ -1,5 +1,6 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { mutation } from "../_generated/server";
+import { sanitizeEmail, sanitizeName } from "../lib/sanitize";
 
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000;
 
@@ -26,12 +27,22 @@ export const create = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    const nameResult = sanitizeName(args.name);
+    if (!nameResult.valid) {
+      throw new ConvexError({ code: "BAD_REQUEST", message: nameResult.reason });
+    }
+
+    const emailResult = sanitizeEmail(args.email);
+    if (!emailResult.valid) {
+      throw new ConvexError({ code: "BAD_REQUEST", message: emailResult.reason });
+    }
+
     const now = Date.now();
     const expiresAt = now + SESSION_DURATION_MS;
 
     const contactSessionId = await ctx.db.insert("contactSessions", {
-      name: args.name,
-      email: args.email,
+      name: nameResult.value,
+      email: emailResult.value,
       organizationId: args.organizationId,
       expiresAt,
       metadata: args.metadata,

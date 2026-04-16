@@ -18,8 +18,18 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { contactSessionIdAtomFamily, organizationIdAtom, screenAtom } from "../../atoms/widget-atoms";
 
 const formSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address"),
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(16, "Name must be 16 characters or less")
+    .regex(
+      /^[a-zA-Z\s'\-]+$/,
+      "Name can only contain letters, spaces, hyphens, and apostrophes"
+    ),
+  email: z
+    .string()
+    .email("Invalid email address")
+    .max(254, "Email address is too long"),
 });
 
 export const WidgetAuthScreen = () => {

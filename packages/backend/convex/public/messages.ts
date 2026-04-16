@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { action, query } from "../_generated/server";
+import { sanitizeMessage } from "../lib/sanitize";
 import { internal } from "../_generated/api";
 import { supportAgent } from "../system/ai/agents/supportAgent";
 import { paginationOptsValidator } from "convex/server";
@@ -46,13 +47,18 @@ export const create = action({
       });
     }
 
+    const messageResult = sanitizeMessage(args.prompt);
+    if (!messageResult.valid) {
+      throw new ConvexError({ code: "BAD_REQUEST", message: messageResult.reason });
+    }
+
     // TODO: Implement subscription check
 
     await supportAgent.generateText(
       ctx,
       { threadId: args.threadId },
       {
-        prompt: args.prompt,
+        prompt: messageResult.value,
       }
     )
   },
