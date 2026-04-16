@@ -1,13 +1,11 @@
 {
-  "extends": "@workspace/typescript-config/react-library.json",
+  "extends": "@workspace/typescript-config/base.json",
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
-      "@workspace/backend/*": ["./convex/*"]
-    }
+      "@workspace/backend/*": ["./convex/*"],
+    },
   },
   "include": ["."],
   "exclude": ["node_modules"]
 }
-

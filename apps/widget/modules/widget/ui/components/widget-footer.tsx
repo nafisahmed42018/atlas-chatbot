@@ -3,7 +3,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { HomeIcon, InboxIcon } from "lucide-react"
 
 export const WidgetFooter = () => {
-  const screen = "selection"
+  const screen = "selection";
 
   return (
     <footer className="flex items-center justify-between border-t bg-background">
@@ -28,5 +28,5 @@ export const WidgetFooter = () => {
         />
       </Button>
     </footer>
-  )
-}
+  );
+};

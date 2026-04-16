@@ -1,13 +1,10 @@
-// Root-level ESLint config for a Turborepo workspace.
-// App/package lint rules live in each workspace's eslint.config.js.
+// This configuration only applies to the package manager root.
 /** @type {import("eslint").Linter.Config} */
 module.exports = {
-  root: true,
-  ignorePatterns: [
-    "**/node_modules/**",
-    "**/.next/**",
-    "**/dist/**",
-    "**/.turbo/**",
-    "**/coverage/**",
-  ],
+  ignorePatterns: ["apps/**", "packages/**"],
+  extends: ["@workspace/eslint-config/library.js"],
+  parser: "@typescript-eslint/parser",
+  parserOptions: {
+    project: true,
+  },
 }
