@@ -916,12 +916,6 @@ lint  ──► all packages (parallel)
 <br><br>
 <span class="pill pill-yellow">Soon</span> Inbox screen (past conversations)
 <br><br>
-<span class="pill pill-blue">Planned</span> Subscription enforcement
-<br><br>
-<span class="pill pill-blue">Planned</span> Voice channel (Vapi plugin)
-<br><br>
-<span class="pill pill-blue">Planned</span> Third-party integrations
-<br><br>
 <span class="pill pill-blue">Planned</span> Session expiry cleanup cron
 
 </div>
