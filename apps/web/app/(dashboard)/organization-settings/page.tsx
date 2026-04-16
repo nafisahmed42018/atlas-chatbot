@@ -1,7 +1,7 @@
 const Page = () => {
   return ( 
     <div>
-      Billing
+      Organization Settings
     </div>
    );
 }
