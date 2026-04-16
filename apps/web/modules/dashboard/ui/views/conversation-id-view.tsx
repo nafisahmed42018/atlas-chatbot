@@ -106,29 +106,10 @@ export const ConversationIdView = ({
 
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const updateConversationStatus = useMutation(api.private.conversations.updateStatus);
-  const handleToggleStatus = async () => {
-    if (!conversation) {
-      return;
-    }
-
+  const handleStatusChange = async (newStatus: "unresolved" | "resolved" | "escalated") => {
     setIsUpdatingStatus(true);
-
-    let newStatus: "unresolved" | "resolved" | "escalated";
-
-    // Cycle through states: unresolved -> escalated -> resolved -> unresolved
-    if (conversation.status === "unresolved") {
-      newStatus = "escalated";
-    } else if (conversation.status === "escalated") {
-      newStatus = "resolved"
-    } else {
-      newStatus = "unresolved"
-    }
-
     try {
-      await updateConversationStatus({
-        conversationId,
-        status: newStatus,
-      });
+      await updateConversationStatus({ conversationId, status: newStatus });
     } catch (error) {
       console.error(error);
     } finally {
@@ -151,7 +132,7 @@ export const ConversationIdView = ({
         </Button>
         {!!conversation && (
           <ConversationStatusButton
-            onClick={handleToggleStatus}
+            onStatusChange={handleStatusChange}
             status={conversation.status}
             disabled={isUpdatingStatus}
           />

@@ -1,45 +1,69 @@
-import { Hint } from "@workspace/ui/components/hint";
-import { Doc } from "@workspace/backend/_generated/dataModel"
+import { Doc } from "@workspace/backend/_generated/dataModel";
 import { Button } from "@workspace/ui/components/button";
-import { ArrowRightIcon, ArrowUpIcon, CheckIcon } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu";
+import { ArrowRightIcon, ArrowUpIcon, CheckIcon, ChevronDownIcon } from "lucide-react";
+
+type Status = Doc<"conversations">["status"];
+
+const STATUS_CONFIG: Record<
+  Status,
+  { label: string; icon: React.ReactNode; variant: "tertiary" | "warning" | "destructive" }
+> = {
+  resolved: {
+    label: "Resolved",
+    icon: <CheckIcon className="size-4" />,
+    variant: "tertiary",
+  },
+  escalated: {
+    label: "Escalated",
+    icon: <ArrowUpIcon className="size-4" />,
+    variant: "warning",
+  },
+  unresolved: {
+    label: "Unresolved",
+    icon: <ArrowRightIcon className="size-4" />,
+    variant: "destructive",
+  },
+};
+
+const ALL_STATUSES: Status[] = ["unresolved", "escalated", "resolved"];
 
 export const ConversationStatusButton = ({
   status,
-  onClick,
+  onStatusChange,
   disabled,
 }: {
-  status: Doc<"conversations">["status"];
-  onClick: () => void;
+  status: Status;
+  onStatusChange: (status: Status) => void;
   disabled?: boolean;
 }) => {
-  if (status === "resolved") {
-    return (
-      <Hint text="Mark as unresolved">
-        <Button disabled={disabled} onClick={onClick} size="sm" variant="tertiary">
-          <CheckIcon />
-          Resolved
-        </Button>
-      </Hint>
-    );
-  }
-
-  if (status === "escalated") {
-    return (
-      <Hint text="Mark as resolved">
-        <Button disabled={disabled} onClick={onClick} size="sm" variant="warning">
-          <ArrowUpIcon />
-          Escalated
-        </Button>
-      </Hint>
-    );
-  }
+  const current = STATUS_CONFIG[status];
 
   return (
-    <Hint text="Mark as escalated">
-      <Button disabled={disabled} onClick={onClick} size="sm" variant="destructive">
-        <ArrowRightIcon />
-        Unresolved
-      </Button>
-    </Hint>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button disabled={disabled} size="sm" variant={current.variant}>
+          {current.icon}
+          {current.label}
+          <ChevronDownIcon className="size-3" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {ALL_STATUSES.filter((s) => s !== status).map((s) => {
+          const config = STATUS_CONFIG[s];
+          return (
+            <DropdownMenuItem key={s} onClick={() => onStatusChange(s)}>
+              {config.icon}
+              {config.label}
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
