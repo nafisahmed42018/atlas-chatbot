@@ -12,6 +12,13 @@ import { extractTextContent } from "../lib/extractTextContent";
 import rag from "../system/ai/rag";
 import { Id } from "../_generated/dataModel";
 import { paginationOptsValidator } from "convex/server";
+import {
+  sanitizeCategory,
+  sanitizeFilename,
+  sanitizeMimeType,
+  sanitizeFileSize,
+  MAX_FILE_SIZE_BYTES,
+} from "../lib/sanitize";
 
 function guessMimeType(filename: string, bytes: ArrayBuffer): string {
   return (
@@ -109,9 +116,34 @@ export const addFile = action({
       });
     }
 
-    const { bytes, filename, category } = args;
+    const fileSizeResult = sanitizeFileSize(args.bytes.byteLength);
+    if (!fileSizeResult.valid) {
+      throw new ConvexError({ code: "BAD_REQUEST", message: fileSizeResult.reason });
+    }
 
-    const mimeType = args.mimeType || guessMimeType(filename, bytes);
+    const filenameResult = sanitizeFilename(args.filename);
+    if (!filenameResult.valid) {
+      throw new ConvexError({ code: "BAD_REQUEST", message: filenameResult.reason });
+    }
+
+    const rawMime = args.mimeType || guessMimeType(args.filename, args.bytes);
+    const mimeResult = sanitizeMimeType(rawMime);
+    if (!mimeResult.valid) {
+      throw new ConvexError({ code: "BAD_REQUEST", message: mimeResult.reason });
+    }
+
+    const categoryResult = args.category !== undefined
+      ? sanitizeCategory(args.category)
+      : { valid: true as const, value: undefined as unknown as string };
+    if (!categoryResult.valid) {
+      throw new ConvexError({ code: "BAD_REQUEST", message: categoryResult.reason });
+    }
+
+    const { bytes } = args;
+    const filename = filenameResult.value;
+    const mimeType = mimeResult.value;
+    const category = args.category !== undefined ? categoryResult.value : undefined;
+
     const blob = new Blob([bytes], { type: mimeType });
 
     const storageId = await ctx.storage.store(blob);

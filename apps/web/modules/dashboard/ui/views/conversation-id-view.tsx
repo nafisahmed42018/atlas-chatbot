@@ -7,7 +7,7 @@ import { api } from "@workspace/backend/_generated/api";
 import { Id } from "@workspace/backend/_generated/dataModel";
 import { Button } from "@workspace/ui/components/button";
 import { useAction, useMutation, useQuery } from "convex/react";
-import { MoreHorizontalIcon, Wand2Icon } from "lucide-react";
+import { AlertTriangleIcon, MoreHorizontalIcon, Wand2Icon } from "lucide-react";
 import {
   AIConversation,
   AIConversationContent,
@@ -36,8 +36,15 @@ import { useState } from "react";
 import { cn } from "@workspace/ui/lib/utils";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 
+const HTML_TAG_REGEX = /<[^>]*>/g;
+
 const formSchema = z.object({
-  message: z.string().min(1, "Message is required"),
+  message: z
+    .string()
+    .min(1, "Message is required")
+    .max(2000, "Message is too long (max 2000 characters)")
+    .transform((val) => val.replace(HTML_TAG_REGEX, "").trim())
+    .refine((val) => val.length > 0, "Message is required"),
 });
 
 export const ConversationIdView = ({
@@ -90,17 +97,24 @@ export const ConversationIdView = ({
     }
   }
 
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
+
   const createMessage = useMutation(api.private.messages.create);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setWarningMessage(null);
     try {
       await createMessage({
         conversationId,
         prompt: values.message,
       });
-
       form.reset();
     } catch (error) {
-      console.error(error);
+      const data = (error as { data?: { code?: string; message?: string } }).data;
+      if (data?.code === "BAD_REQUEST" && data?.message) {
+        setWarningMessage(data.message);
+      } else {
+        setWarningMessage("Failed to send message. Please try again.");
+      }
     }
   };
 
@@ -172,6 +186,12 @@ export const ConversationIdView = ({
       <div className="p-2">
         <Form {...form}>
           <AIInput onSubmit={form.handleSubmit(onSubmit)}>
+            {warningMessage && (
+              <div className="flex items-start gap-x-2 rounded-md bg-yellow-50 px-3 py-2 text-xs text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300">
+                <AlertTriangleIcon className="mt-0.5 size-3 shrink-0" />
+                <span>{warningMessage}</span>
+              </div>
+            )}
             <FormField
               control={form.control}
               disabled={conversation?.status === "resolved"}
@@ -183,7 +203,10 @@ export const ConversationIdView = ({
                     form.formState.isSubmitting ||
                     isEnhancing
                   }
-                  onChange={field.onChange}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    if (warningMessage) setWarningMessage(null);
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();

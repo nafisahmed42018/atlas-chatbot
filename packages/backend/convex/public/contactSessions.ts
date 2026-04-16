@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { mutation } from "../_generated/server";
-import { sanitizeEmail, sanitizeName } from "../lib/sanitize";
+import { sanitizeEmail, sanitizeName, sanitizeMetadataString } from "../lib/sanitize";
 
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000;
 
@@ -40,12 +40,27 @@ export const create = mutation({
     const now = Date.now();
     const expiresAt = now + SESSION_DURATION_MS;
 
+    const rawMeta = args.metadata;
+    const metadata = rawMeta
+      ? {
+          ...rawMeta,
+          userAgent: rawMeta.userAgent ? sanitizeMetadataString(rawMeta.userAgent) : undefined,
+          language: rawMeta.language ? sanitizeMetadataString(rawMeta.language) : undefined,
+          languages: rawMeta.languages ? sanitizeMetadataString(rawMeta.languages) : undefined,
+          platform: rawMeta.platform ? sanitizeMetadataString(rawMeta.platform) : undefined,
+          vendor: rawMeta.vendor ? sanitizeMetadataString(rawMeta.vendor) : undefined,
+          timezone: rawMeta.timezone ? sanitizeMetadataString(rawMeta.timezone) : undefined,
+          referrer: rawMeta.referrer ? sanitizeMetadataString(rawMeta.referrer) : undefined,
+          currentUrl: rawMeta.currentUrl ? sanitizeMetadataString(rawMeta.currentUrl) : undefined,
+        }
+      : undefined;
+
     const contactSessionId = await ctx.db.insert("contactSessions", {
       name: nameResult.value,
       email: emailResult.value,
       organizationId: args.organizationId,
       expiresAt,
-      metadata: args.metadata,
+      metadata,
     });
 
     return contactSessionId;

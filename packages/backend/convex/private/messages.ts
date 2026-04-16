@@ -6,6 +6,8 @@ import { supportAgent } from "../system/ai/agents/supportAgent";
 import { paginationOptsValidator } from "convex/server";
 import { saveMessage } from "@convex-dev/agent";
 import { openai } from "@ai-sdk/openai";
+import { OPERATOR_MESSAGE_ENHANCEMENT_PROMPT } from "../system/ai/prompts";
+import { sanitizeEnhancePrompt, sanitizeOperatorMessage } from "../lib/sanitize";
 
 export const enhanceResponse = action({
   args: {
@@ -30,16 +32,21 @@ export const enhanceResponse = action({
       });
     }
 
+    const enhanceResult = sanitizeEnhancePrompt(args.prompt);
+    if (!enhanceResult.valid) {
+      throw new ConvexError({ code: "BAD_REQUEST", message: enhanceResult.reason });
+    }
+
     const response = await generateText({
       model: openai("gpt-4o-mini"),
       messages: [
         {
           role: "system",
-          content: "Enhance the operator's message to be more professional, clear, and helpful while maintaining their intent and key information."
+          content: OPERATOR_MESSAGE_ENHANCEMENT_PROMPT,
         },
         {
           role: "user",
-          content: args.prompt,
+          content: enhanceResult.value,
         },
       ],
     });
@@ -100,13 +107,18 @@ export const create = mutation({
       });
     }
 
+    const messageResult = sanitizeOperatorMessage(args.prompt);
+    if (!messageResult.valid) {
+      throw new ConvexError({ code: "BAD_REQUEST", message: messageResult.reason });
+    }
+
     await saveMessage(ctx, components.agent, {
       threadId: conversation.threadId,
       // TODO: Check if "agentName" is needed or not
       agentName: identity.familyName,
       message: {
         role: "assistant",
-        content: args.prompt,
+        content: messageResult.value,
       },
     });
   },
