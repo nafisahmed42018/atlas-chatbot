@@ -2,12 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useThreadMessages, toUIMessages } from "@convex-dev/agent/react";
 import { WidgetHeader } from "@/modules/widget/ui/components/widget-header";
 import { Button } from "@workspace/ui/components/button";
 import { useAtomValue, useSetAtom } from "jotai";
-import { ArrowLeftIcon, MenuIcon } from "lucide-react";
+import { AlertTriangleIcon, ArrowLeftIcon, MenuIcon } from "lucide-react";
 import { DicebearAvatar } from "@workspace/ui/components/dicebear-avatar";
 import { useInfiniteScroll } from "@workspace/ui/hooks/use-infinite-scroll";
 import { InfiniteScrollTrigger } from "@workspace/ui/components/infinite-scroll-trigger";
@@ -37,8 +38,15 @@ import {
   AISuggestions,
 } from "@workspace/ui/components/ai/suggestion";
 
+const HTML_TAG_REGEX = /<[^>]*>/g;
+
 const formSchema = z.object({
-  message: z.string().min(1, "Message is required"),
+  message: z
+    .string()
+    .min(1, "Message is required")
+    .max(500, "Message is too long (max 500 characters)")
+    .transform((val) => val.replace(HTML_TAG_REGEX, "").trim())
+    .refine((val) => val.length > 0, "Message is required"),
 });
 
 export const WidgetChatScreen = () => {
@@ -90,19 +98,31 @@ export const WidgetChatScreen = () => {
     },
   });
 
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
+
   const createMessage = useAction(api.public.messages.create);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!conversation || !contactSessionId) {
       return;
     }
 
-    form.reset();
+    setWarningMessage(null);
 
-    await createMessage({
-      threadId: conversation.threadId,
-      prompt: values.message,
-      contactSessionId,
-    });
+    try {
+      await createMessage({
+        threadId: conversation.threadId,
+        prompt: values.message,
+        contactSessionId,
+      });
+      form.reset();
+    } catch (error) {
+      const data = (error as { data?: { code?: string; message?: string } }).data;
+      if (data?.code === "BAD_REQUEST" && data?.message) {
+        setWarningMessage(data.message);
+      } else {
+        setWarningMessage("Failed to send message. Please try again.");
+      }
+    }
   };
 
   return (
@@ -160,6 +180,12 @@ export const WidgetChatScreen = () => {
             className="rounded-none border-x-0 border-b-0"
             onSubmit={form.handleSubmit(onSubmit)}
           >
+            {warningMessage && (
+              <div className="flex items-start gap-x-2 rounded-md bg-yellow-50 px-3 py-2 text-xs text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300">
+                <AlertTriangleIcon className="mt-0.5 size-3 shrink-0" />
+                <span>{warningMessage}</span>
+              </div>
+            )}
             <FormField
               control={form.control}
               disabled={conversation?.status === "resolved"}
@@ -167,7 +193,10 @@ export const WidgetChatScreen = () => {
               render={({ field }) => (
                 <AIInputTextarea
                   disabled={conversation?.status === "resolved"}
-                  onChange={field.onChange}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    if (warningMessage) setWarningMessage(null);
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
