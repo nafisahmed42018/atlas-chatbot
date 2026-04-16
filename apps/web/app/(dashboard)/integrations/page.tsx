@@ -1,5 +1,9 @@
 const Page = () => {
-  return <div>Integrations</div>
+  return ( 
+    <div>
+      Integrations
+    </div>
+   );
 }
-
-export default Page
+ 
+export default Page;

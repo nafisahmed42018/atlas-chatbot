@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { LoaderIcon } from "lucide-react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { contactSessionIdAtomFamily, errorMessageAtom, loadingMessageAtom, organizationIdAtom, screenAtom } from "@/modules/widget/atoms/widget-atom";
+import { contactSessionIdAtomFamily, errorMessageAtom, loadingMessageAtom, organizationIdAtom, screenAtom } from "@/modules/widget/atoms/widget-atoms";
 import { WidgetHeader } from "@/modules/widget/ui/components/widget-header";
 import { useAction, useMutation } from "convex/react";
 import { api } from "@workspace/backend/_generated/api";
 
-type InitStep = "org" | "session" | "settings" |  "done";
+type InitStep = "org" | "session" | "settings" | "vapi" | "done";
 
 export const WidgetLoadingScreen = ({ organizationId }: { organizationId: string | null }) => {
   const [step, setStep] = useState<InitStep>("org")
@@ -65,7 +65,7 @@ export const WidgetLoadingScreen = ({ organizationId }: { organizationId: string
   ]);
 
   // Step 2: Validate session (if exists)
-  const validateContactSession = useMutation(api.public.contactSession.validate);
+  const validateContactSession = useMutation(api.public.contactSessions.validate);
   useEffect(() => {
     if (step !== "session") {
       return;
@@ -106,7 +106,7 @@ export const WidgetLoadingScreen = ({ organizationId }: { organizationId: string
       <WidgetHeader>
         <div className="flex flex-col justify-between gap-y-2 px-2 py-6 font-semibold">
           <p className="text-3xl">
-            Hi there!
+            Hi there! 👋
           </p>
           <p className="text-lg">
             Let&apos;s get you started

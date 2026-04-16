@@ -1,5 +1,9 @@
 const Page = () => {
-  return <div>Files</div>
+  return ( 
+    <div>
+      Files
+    </div>
+   );
 }
-
-export default Page
+ 
+export default Page;

@@ -1,8 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google"
 
-// @ts-ignore
 import "@workspace/ui/globals.css"
-import { ConvexProviders } from "@/components/convex-provider"
+import { Providers } from "@/components/providers"
 
 const fontSans = Geist({
   subsets: ["latin"],
@@ -22,9 +21,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}
+        className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased `}
       >
-        <ConvexProviders>{children}</ConvexProviders>
+        <Providers>{children}</Providers>
       </body>
     </html>
   )

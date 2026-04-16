@@ -1,4 +1,4 @@
-import { OrganizationList } from "@clerk/nextjs"
+import { OrganizationList } from "@clerk/nextjs";
 
 export const OrgSelectionView = () => {
   return (
@@ -8,5 +8,5 @@ export const OrgSelectionView = () => {
       hidePersonal
       skipInvitationScreen
     />
-  )
-}
+  );
+};
