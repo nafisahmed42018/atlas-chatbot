@@ -55,8 +55,8 @@ const configurationItems = [
 
 const accountItems = [
   {
-    title: "Plans & Billing",
-    url: "/billing",
+    title: "Organization Settings",
+    url: "/organization-settings",
     icon: CreditCardIcon,
   },
 ];

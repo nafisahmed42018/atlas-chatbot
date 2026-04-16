@@ -87,6 +87,11 @@ export const create = mutation({
         message: "Invalid Organization ID",
       });
     }
+    if (conversation.status === "resolved"){
+      await ctx.db.patch(args.conversationId,{
+        status: "escalated"
+      })
+    }
 
     if (conversation.status === "resolved") {
       throw new ConvexError({
